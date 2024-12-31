@@ -12,15 +12,27 @@ enum Language {
     Java,
     NodeJS,
     Go,
+    Dart,
+    C
 }
 
-static SUPPORTED_LANGUAGES: [Language; 5] = [ Language::Rust, Language::Dotnet, Language::Java, Language::NodeJS, Language::Go];
-
+static SUPPORTED_LANGUAGES: [Language; 7] = [
+    Language::Rust,
+    Language::Dotnet,
+    Language::Java,
+    Language::NodeJS,
+    Language::Go,
+    Language::Dart,
+    Language::C,
+];
 
 fn main() {
     let language: Language;
     loop {
-        println!("Please choose a language from the following: {:?}", SUPPORTED_LANGUAGES);
+        println!(
+            "Please choose a language from the following: {:?}",
+            SUPPORTED_LANGUAGES
+        );
         let mut input = String::new();
         stdin().read_line(&mut input).unwrap();
         input = input.trim().to_lowercase().to_string();
@@ -47,6 +59,8 @@ fn user_input_to_enum(input: &str) -> Option<Language> {
         "java" => Some(Language::Java),
         "nodejs" => Some(Language::NodeJS),
         "go" => Some(Language::Go),
+        "dart" => Some(Language::Dart),
+        "c" => Some(Language::C),
         _ => None,
     }
 }
@@ -93,6 +107,8 @@ fn create_nix_shell(language: &Language) -> String {
                 "export DOTNET_ROOT=${pkgs.dotnet-sdk}",
             ],
         ),
+        Language::Dart => (vec!["dart"], vec!["dart --disable-analytics"]),
+        Language::C => (vec!["gcc"], vec![]),
     };
     format!(
         r#"{{ pkgs ? import <nixpkgs> {{}} }}:
@@ -151,8 +167,21 @@ mod tests {
     }
 
     #[test]
+    fn shell_test_dart() {
+        let string = create_nix_shell(&Language::Dart);
+        assert!(string.contains("dart"));
+        assert!(string.contains("dart --disable-analytics"));
+    }
+
+    #[test]
+    fn shell_test_c() {
+        let string = create_nix_shell(&Language::C);
+        assert!(string.contains("gcc"));
+    }
+
+    #[test]
     fn direnv_test() {
-        for language in &SUPPORTED_LANGUAGES  {
+        for language in &SUPPORTED_LANGUAGES {
             let string = create_direnv(&language);
             assert_eq!(string, "use nix");
         }
