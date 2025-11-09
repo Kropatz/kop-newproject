@@ -117,7 +117,8 @@ pkgs.mkShell rec {{
     {packages}
   ];
 
-  shellHook = ''
+  shellHook = let libraries = with pkgs; [ ]; in ''
+    export LD_LIBRARY_PATH=${{pkgs.lib.makeLibraryPath libraries}}:$LD_LIBRARY_PATH
     {hooks}
   '';
 }}"#,
